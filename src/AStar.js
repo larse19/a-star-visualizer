@@ -19,18 +19,17 @@ class Node {
     return this.toString();
   }
 
-  getParentLetter() {
-    return this.parentNode.state.letter;
-  }
-
   getH() {
-    return this.state.h * 2;
+    return (
+      (Math.abs(this.state.x - goalState.x) +
+        Math.abs(this.state.y - goalState.y)) *
+      2
+    );
   }
 
   getG() {
     if (!this.parentNode) return 0;
-    const toParent = pathCost(this.state.letter, this.getParentLetter());
-    return toParent + this.parentNode.getG();
+    return 1 + this.parentNode.getG();
   }
 
   getF() {
@@ -39,22 +38,29 @@ class Node {
 }
 
 Node.prototype.toString = function nodeToString() {
-  return `State: ${this.state} - Depth ${this.depth}`;
+  return `State: ${this.state} - Depth ${
+    this.depth
+  } - H: ${this.getH()} - G: ${this.getG()}`;
 };
 
 class State {
-  constructor(letter, h) {
-    this.letter = letter;
-    this.h = h;
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
   }
 }
 
 State.prototype.toString = function stateToString() {
-  return `(${this.letter}, ${this.h})`;
+  return `(${this.x}, ${this.y})`;
 };
 
 function successor_fn(state) {
-  return STATE_SPACE[state.letter];
+  let successors = [];
+  if (state.x > 0) successors.push(new State(state.x - 1, state.y));
+  if (state.y > 0) successors.push(new State(state.x, state.y - 1));
+  if (state.x < mapSizeX) successors.push(new State(state.x + 1, state.y));
+  if (state.y < mapSizeY) successors.push(new State(state.x, state.y + 1));
+  return successors;
 }
 
 function insert(node, queue) {
@@ -92,11 +98,11 @@ function aStarNode(queue) {
 
 export function aStarSearch() {
   let fringe = [];
-  let initialNode = new Node(INITIAL_STATE);
+  let initialNode = new Node(initialState);
   fringe = insert(initialNode, fringe);
   while (fringe) {
     let node = aStarNode(fringe);
-    if (node.state === GOAL_STATE[0] || node.state === GOAL_STATE[0]) {
+    if (node.state.x === goalState.x && node.state.y === goalState.y) {
       return node.path();
     }
     let children = expand(node);
@@ -104,12 +110,40 @@ export function aStarSearch() {
   }
 }
 
-export function runAStar() {
+export function runAStar(size, start, goal) {
+  [mapSizeX, mapSizeY] = size;
+  initialState = new State(start[0], start[1]);
+  goalState = new State(goal[0], goal[1]);
   let path = aStarSearch();
-  console.log(`Solution path: ${path.reverse().toString()}`);
-  console.log(`Path length:${path[0].getF()}`);
+  //console.log(`Path length: ${path[0].getG()}`);
+  //console.log(`Solution path: ${path.reverse().toString()}`);
+
+  let map = createMap(mapSizeX, mapSizeY);
+  for (let node of path) {
+    map[node.state.y][node.state.x] = node;
+  }
+  //console.log(map);
+  return map;
 }
 
+function createMap(xSize, ySize) {
+  let map = [];
+  for (let y = 0; y < ySize; y++) {
+    let subArr = [];
+    for (let x = 0; x < xSize; x++) {
+      subArr.push(null);
+    }
+    map.push(subArr);
+  }
+  return map;
+}
+
+let mapSizeX = 0;
+let mapSizeY = 0;
+let initialState = null;
+let goalState = null;
+
+/*
 const A = new State("A", 6);
 const B = new State("B", 5);
 const C = new State("C", 5);
@@ -123,8 +157,6 @@ const J = new State("J", 1);
 const K = new State("K", 0);
 const L = new State("L", 0);
 
-const INITIAL_STATE = A;
-const GOAL_STATE = [K, L];
 const STATE_SPACE = {
   A: [B, C, D],
   B: [F, E],
@@ -158,3 +190,4 @@ function pathCost(first, second) {
   else if (first === "L" && second === "H") return 5;
   else if (first === "L" && second === "I") return 3;
 }
+*/
