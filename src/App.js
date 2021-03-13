@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { runAStar } from "./AStar";
+import AStar from "./AStar";
 
 function App() {
-  const [map, setMap] = useState([[]]);
   const [size, setSize] = useState([10, 10]);
   const [start, setStart] = useState([0, 0]);
   const [goal, setGoal] = useState([0, 0]);
-
-  useEffect(() => {
-    setMap(runAStar(size, start, goal));
-  }, [size, start, goal]);
 
   const handleParametersButton = () => {
     let size = [
@@ -92,15 +87,7 @@ function App() {
         </div>
         <button onClick={handleParametersButton}>Start</button>
       </div>
-      <table>
-        <tbody>
-          {map.map((row) => (
-            <tr key={map.indexOf(row)}>
-              {row.map((col) => (col ? <td>x</td> : <td></td>))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <AStar />
     </div>
   );
 }
