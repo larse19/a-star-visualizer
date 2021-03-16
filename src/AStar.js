@@ -1,15 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Node from "./Node";
 import State from "./State";
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import Map from "./Map";
 
-export default function AStar() {
-  const [map, setMap] = useState([[]]);
-  const [mapSize, setMapSize] = useState([10, 10]);
-  const [initialState, setInitialState] = useState([0, 0]);
-  const [goalState, setGoalState] = useState([0, 0]);
+export default function AStar({ initialState, goalState, mapSize }) {
   const [fringe, setFringe] = useState([]);
   const [finalPath, setFinalPath] = useState([]);
+  const [finalFringe, setFinalFringe] = useState([]);
 
   function successor_fn(state) {
     let successors = [];
@@ -23,10 +22,6 @@ export default function AStar() {
   function insert(node, queue) {
     queue.push(node);
     return queue;
-  }
-
-  function insertAll(list, queue) {
-    return queue.concat(list);
   }
 
   function expand(node) {
@@ -56,74 +51,56 @@ export default function AStar() {
     return lowest;
   }
 
-  function aStarSearch() {
+  function initializeFringe() {
     let initialNode = new Node(initialState);
     initialNode.goalState = goalState;
     setFringe([initialNode]);
-    while (fringe) {
+  }
+
+  //A star search algorithm
+  useEffect(() => {
+    if (fringe.length >= 1) {
       let node = aStarNode(fringe);
       if (node.state.x === goalState.x && node.state.y === goalState.y) {
-        return node.path();
+        setFinalPath(node.path());
+        setFinalFringe(fringe);
+        setFringe([]);
+      } else {
+        let children = expand(node);
+        setFringe((current) => [...current, ...children]);
+      }
+    }
+  }, [fringe]);
+
+  /*
+  function aStarSearch() {
+    while (fringe) {
+      let node = aStarNode(fringe);
+      console.log(node);
+      if (node.state.x === goalState.x && node.state.y === goalState.y) {
+        setFinalPath(node.path());
       }
       let children = expand(node);
       setFringe((current) => [...current, ...children]);
     }
   }
-
+*/
   function runAStar() {
-    [mapSize[0], mapSize[1]] = mapSize;
-    setInitialState(new State(initialState[0], initialState[1]));
-    setGoalState(new State(goalState[0], goalState[1]));
-    setFinalPath(aStarSearch());
-  }
-
-  function createMap() {
-    let tempMap = [];
-    for (let y = 0; y < mapSize[1]; y++) {
-      let subArr = [];
-      for (let x = 0; x < mapSize[0]; x++) {
-        subArr.push(null);
-      }
-      tempMap.push(subArr);
-    }
-    for (let node of finalPath) {
-      tempMap[node.state.y][node.state.x] = node;
-    }
-    setMap(tempMap);
+    initializeFringe();
   }
 
   useEffect(() => {
     runAStar();
-  }, [mapSize, initialState, goalState]);
-
-  useEffect(() => {
-    createMap();
-  }, [finalPath]);
+  }, [initialState, goalState]);
 
   return (
     <div>
-      <table>
-        <tbody>
-          {map.map((row) => (
-            <tr key={map.indexOf(row)}>
-              {row.map((cell) =>
-                cell ? (
-                  <td
-                    key={`${row.indexOf(cell)},${map.indexOf(row)}`}
-                    onClick={() =>
-                      console.log(`${row.indexOf(cell)},${map.indexOf(row)}`)
-                    }
-                  >
-                    x
-                  </td>
-                ) : (
-                  <td></td>
-                )
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Map
+        mapSize={mapSize}
+        finalPath={finalPath}
+        fringe={fringe}
+        finalFringe={finalFringe}
+      />
     </div>
   );
 }

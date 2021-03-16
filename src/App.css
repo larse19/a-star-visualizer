@@ -17,3 +17,11 @@ input {
 .screen {
   padding: 20px;
 }
+
+.goalState {
+  background-color: red;
+}
+
+.initialState {
+  background-color: green;
+}
