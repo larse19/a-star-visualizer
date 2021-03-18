@@ -9,13 +9,20 @@ export default function AStar({ initialState, goalState, mapSize }) {
   const [fringe, setFringe] = useState([]);
   const [finalPath, setFinalPath] = useState([]);
   const [finalFringe, setFinalFringe] = useState([]);
+  const [map, setMap] = useState([[]]);
 
   function successor_fn(state) {
     let successors = [];
-    if (state.x > 0) successors.push(new State(state.x - 1, state.y));
-    if (state.y > 0) successors.push(new State(state.x, state.y - 1));
-    if (state.x < mapSize[0]) successors.push(new State(state.x + 1, state.y));
-    if (state.y < mapSize[0]) successors.push(new State(state.x, state.y + 1));
+    //console.log(state.x, state.y + 1, !map[state.y + 1]?.[state.x]?.wall);
+    if (state.x > 0 && !map[state.y]?.[state.x - 1]?.wall)
+      successors.push(new State(state.x - 1, state.y));
+    if (state.y > 0 && !map[state.y - 1]?.[state.x]?.wall)
+      successors.push(new State(state.x, state.y - 1));
+    if (state.x < mapSize[0] && !map[state.y]?.[state.x + 1]?.wall)
+      successors.push(new State(state.x + 1, state.y));
+    if (state.y < mapSize[1] && !map[state.y + 1]?.[state.x]?.wall)
+      successors.push(new State(state.x, state.y + 1));
+    console.log(successors);
     return successors;
   }
 
@@ -26,6 +33,7 @@ export default function AStar({ initialState, goalState, mapSize }) {
 
   function expand(node) {
     let successors = [];
+    console.log("node", node.state);
     let children = successor_fn(node.state);
     for (let child of children) {
       let s = new Node(node);
@@ -90,7 +98,9 @@ export default function AStar({ initialState, goalState, mapSize }) {
   }
 
   useEffect(() => {
-    runAStar();
+    if (map.length > 1) {
+      runAStar();
+    }
   }, [initialState, goalState]);
 
   return (
@@ -100,6 +110,8 @@ export default function AStar({ initialState, goalState, mapSize }) {
         finalPath={finalPath}
         fringe={fringe}
         finalFringe={finalFringe}
+        map={map}
+        setMap={setMap}
       />
     </div>
   );

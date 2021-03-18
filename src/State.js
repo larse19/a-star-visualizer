@@ -1,7 +1,8 @@
 export default class State {
-  constructor(x, y) {
+  constructor(x, y, wall = false) {
     this.x = x;
     this.y = y;
+    this.wall = wall;
   }
 }
 
